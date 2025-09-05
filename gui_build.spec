@@ -6,7 +6,7 @@ a = Analysis(
     ['gui_app.py'],  # 主程序文件
     pathex=[],
     binaries=[],
-    datas = collect_data_files('assets', includes=['*.png', '*.jpg']),
+    datas=[('assets/*.png', 'assets'), ('assets/*.jpg', 'assets')],
     hiddenimports=[
         'pygame',
         'cv2',
@@ -21,7 +21,9 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes = [
+    'matplotlib', 'scipy', 'pandas',
+    'tkinter.test', 'test', 'unittest'],
     noarchive=False,
     optimize=0,
 )
@@ -34,17 +36,18 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='gui_app',  # 可执行文件的名称
+    name='NeopixelMatrixTool v1.0 by Freak嵌入式',  # 可执行文件的名称
     debug=False,
     bootloader_ignore_signals=False,
-    strip=False,
+    strip=True,
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,  # 如果是命令行程序，保持 console=True
+    console=True,  # 如果是命令行程序，保持 console=True
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='NeopixelMatrixTool.ico'
 )

@@ -11,6 +11,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from ws_converter.converter import convert_image_to_json, convert_video_to_json
 from ws_converter.simulator import WS2812Simulator
+from ws_converter.editor import PixelEditor
 import threading
 import os
 import json
@@ -29,10 +30,14 @@ sim_thread = None
 # 指向 assets 文件夹
 ASSETS_DIR = os.path.join(os.path.dirname(__file__), "..", "NeopixelMatrixTool\\assets")
 
+# 在全局变量部分添加
+global editor_window
+editor_window = None
+
 # ======================================== 功能函数 ============================================
 
 def resource_path(relative_path):
-    """用于获取资源路径，兼容 PyInstaller """
+    """用于获取资源路径，兼容 PyInstaller"""
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
@@ -258,6 +263,18 @@ def gui_main():
     tk.Label(progress_frame, textvariable=progress_label).pack(side="left")
     ttk.Progressbar(progress_frame, variable=progress_var, maximum=100).pack(side="left", expand=True, fill="x", padx=5)
 
+    progress_hint = tk.Label(root, text="⚠ 当前进度条显示可能不同步，请以终端输出为准。", fg="red")
+    progress_hint.pack()
+
+    progress_hint = tk.Label(root, text="注意：限制图像分辨率最大为 256×128，建议不要超过该尺寸。", fg="red")
+    progress_hint.pack()
+
+    progress_hint = tk.Label(root, text="注意：限制帧数最大为 30 帧，建议不要超过该帧数。", fg="red")
+    progress_hint.pack()
+
+    progress_hint = tk.Label(root, text="注意：你可以将要处理的视频提前剪辑分段进行转换！。", fg="red")
+    progress_hint.pack()
+
     # =================== Tab2：播放模拟器 =====================
     play_tab = ttk.Frame(tab_control)
     tab_control.add(play_tab, text="帧播放模拟器")
@@ -338,6 +355,141 @@ def gui_main():
             simulator.current_frame = max(simulator.current_frame - 1, 0)
             status2.set(f"上一帧: {simulator.current_frame}")
 
+    # === Tab3: 像素矩阵编辑器 ===
+    editor_tab = ttk.Frame(tab_control)
+    tab_control.add(editor_tab, text="像素矩阵编辑器")
+
+    # 添加说明面板
+    help_frame = tk.Frame(editor_tab, bg="#f0f0f0", padx=20, pady=20)
+    help_frame.pack(expand=True, fill="both")
+
+    # 操作说明文本
+    instructions = """
+    📖 使用说明：
+
+    1. 点击上方标签页会自动弹出独立编辑窗口
+    2. 在独立窗口中可进行以下操作：
+       - 点击像素格绘制颜色
+       - 拖拽鼠标连续绘制
+       - 使用工具栏按钮：新建/导入/保存模板
+    3. 文件规范：
+       - 支持最大256x128像素矩阵
+       - 使用RGB565格式存储
+    """
+
+    tk.Label(help_frame,
+             text=instructions,
+             font=("微软雅黑", 10),
+             bg="#f0f0f0",
+             justify="left").pack(anchor="w")
+
+    # 添加分割线
+    ttk.Separator(help_frame, orient="horizontal").pack(fill="x", pady=10)
+
+    # 添加快速操作按钮
+    btn_frame = tk.Frame(help_frame, bg="#f0f0f0")
+    btn_frame.pack()
+
+    def create_editor_window(event):
+        global editor_window
+
+        # 获取当前选中的标签索引
+        try:
+            selected_index = tab_control.index(tab_control.select())
+        except:
+            return  # 防止初始化时未选择标签
+
+        # 仅当切换到第三个标签（索引2）时触发
+        if selected_index == 2:
+            # 检查窗口是否已存在
+            if editor_window and editor_window.winfo_exists():
+                editor_window.lift()  # 已有窗口则提到最前
+                return
+
+            # 创建独立窗口
+            editor_window = tk.Toplevel(root)
+            editor_window.title("WS2812 像素矩阵编辑器")
+            editor_window.geometry("800x600+100+100")  # 初始位置偏移
+
+            # 创建窗口后添加焦点锁定
+            editor_window.grab_set()  # 关键：锁定输入焦点到本窗口
+            editor_window.focus_force()
+
+            # === 窗口行为控制 ===
+            def enforce_focus():
+                """防止窗口失去焦点"""
+                if editor_window.winfo_exists():
+                    editor_window.lift()
+                    editor_window.after(500, enforce_focus)  # 每0.5秒检测一次
+
+            # === 窗口初始化 ===
+            try:
+                # 创建容器框架
+                editor_container = tk.Frame(editor_window)
+                editor_container.pack(expand=True, fill="both", padx=10, pady=10)
+
+                # 初始化编辑器
+                editor = PixelEditor(editor_container)
+
+                # 绑定父子窗口关系
+                editor.root.master = editor_window  # 关键：建立窗口关联
+
+                # 窗口关闭协议
+                def on_close():
+                    global editor_window
+                    editor_window.grab_release()  # 释放焦点锁定
+                    # 恢复主窗口状态
+                    root.attributes('-disabled', 0)
+                    root.focus_force()
+                    # 销毁子窗口
+                    editor_window.destroy()
+                    editor_window = None
+                    # 切换回第一个标签
+                    tab_control.select(0)
+
+                editor_window.protocol("WM_DELETE_WINDOW", on_close)
+
+                # 临时禁用主窗口
+                root.attributes('-disabled', 1)
+
+                # 启动焦点维持检测
+                enforce_focus()
+
+                # 设置窗口图标（可选）
+                try:
+                    icon_path = resource_path(os.path.join("assets", "icon.ico"))
+                    editor_window.iconbitmap(icon_path)
+                except Exception as e:
+                    print(f"图标加载失败: {e}")
+
+                # 绑定ESC键关闭窗口
+                editor_window.bind("<Escape>", lambda e: on_close())
+
+            except Exception as e:
+                messagebox.showerror("窗口初始化错误", f"无法创建编辑器：{str(e)}")
+                editor_window.destroy()
+                editor_window = None
+                root.attributes('-disabled', 0)
+
+        else:
+            # 切换到其他标签时关闭编辑器窗口
+            if editor_window and editor_window.winfo_exists():
+                editor_window.destroy()
+                editor_window = None
+                root.attributes('-disabled', 0)
+
+    # 绑定标签切换事件
+    tab_control.bind("<<NotebookTabChanged>>", create_editor_window)
+
+    def on_closing():
+        global simulator, sim_thread
+        if simulator:
+            simulator.stop_event.set()  # 发送停止信号
+        if sim_thread and sim_thread.is_alive():
+            sim_thread.join(timeout=0.5)
+        pygame.quit()
+        root.destroy()
+
     # 播放器 UI
     tk.Label(play_tab, text="选择任一帧JSON文件").pack(anchor="w", padx=10, pady=(10, 0))
     tk.Entry(play_tab, textvariable=json_path, width=70).pack(padx=10)
@@ -360,6 +512,8 @@ def gui_main():
     tk.Label(play_tab, textvariable=status2, fg="blue").pack()
 
     tab_control.pack(expand=1, fill="both")
+
+    root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
 
 # ======================================== 自定义类 ============================================

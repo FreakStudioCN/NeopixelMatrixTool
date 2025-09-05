@@ -26,7 +26,7 @@ def main():
 
     ✨【使用示例】
     1. 将视频转换为JSON帧：
-       python cli_app.py video -i test_gif.mp4 -o output -W 128 -H 64 --fps 30
+       python cli_app.py video -i test_gif.mp4 -o output -W 128 -H 64 -f 30
 
     2. 将图像转换为JSON帧：
        python cli_app.py image -i test_image.png -o out -W 128 -H 64
