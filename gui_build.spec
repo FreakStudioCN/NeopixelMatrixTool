@@ -6,7 +6,7 @@ a = Analysis(
     ['gui_app.py'],  # 主程序文件
     pathex=[],
     binaries=[],
-    datas=[('assets/*.png', 'assets'), ('assets/*.jpg', 'assets')],
+    datas=[('assets/*.png', 'assets'), ('assets/*.jpg', 'assets'), ('assets/simhei.ttf', 'assets')],
     hiddenimports=[
         'pygame',
         'cv2',
