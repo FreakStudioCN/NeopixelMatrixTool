@@ -5,8 +5,8 @@ a = Analysis(
     ['gui_app.py'],
     pathex=[],
     binaries=[],
-    datas=[('assets', 'assets')],
-    hiddenimports=['pygame', 'cv2', 'numpy', 'natsort', 'tqdm'],
+    datas=[('G:\\NeopixelMatrixTool\\assets', 'assets')],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -32,7 +32,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['NeopixelMatrixTool.ico'],
+    icon=['G:\\NeopixelMatrixTool\\NeopixelMatrixTool.ico'],
 )
 coll = COLLECT(
     exe,

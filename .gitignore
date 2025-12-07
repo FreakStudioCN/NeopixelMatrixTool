@@ -1,10 +1,17 @@
-# 忽略 PyInstaller 生成的文件夹
-build/
-dist/
+# 构建/输出文件夹
 out/
 output/
+dist/
+build/
 
+# IDE配置文件夹（PyCharm等）
+.idea/
+
+# Python缓存文件
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.egg-info/
+*.pyi
+.pytest_cache/
