@@ -48,13 +48,13 @@ jobs:
         copy dist\NeopixelMatrixTool_v1.0\* artifacts\
         
     - name: Upload GUI artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: NeopixelMatrixTool-GUI-Windows
         path: dist/NeopixelMatrixTool_v1.0/
         
     - name: Upload CLI artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: NeopixelMatrixTool-CLI-Windows
         path: dist/cli_app/
@@ -93,13 +93,13 @@ jobs:
         pyinstaller cli_build.spec
         
     - name: Upload GUI artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: NeopixelMatrixTool-GUI-Linux
         path: dist/NeopixelMatrixTool_v1.0/
         
     - name: Upload CLI artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: NeopixelMatrixTool-CLI-Linux
         path: dist/cli_app/
@@ -138,13 +138,13 @@ jobs:
         pyinstaller cli_build.spec
         
     - name: Upload GUI artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: NeopixelMatrixTool-GUI-macOS
         path: dist/NeopixelMatrixTool_v1.0/
         
     - name: Upload CLI artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: NeopixelMatrixTool-CLI-macOS
         path: dist/cli_app/
