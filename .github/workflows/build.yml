@@ -1,0 +1,150 @@
+name: Build NeopixelMatrixTool
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  release:
+    types: [created]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Fix spec file paths
+      run: |
+        # Replace hardcoded paths in spec files with relative paths
+        (Get-Content NeopixelMatrixTool_v1.0.spec) -replace 'G:\\NeopixelMatrixTool', '${{ github.workspace }}' | Set-Content NeopixelMatrixTool_v1.0.spec
+        (Get-Content gui_build.spec) -replace 'G:\\NeopixelMatrixTool', '${{ github.workspace }}' | Set-Content gui_build.spec
+        (Get-Content gui_build.spec) -replace 'G:\\miniconda\\install\\envs\\PyQtDev', '${{ github.workspace }}' | Set-Content gui_build.spec
+        (Get-Content cli_build.spec) -replace 'G:\\NeopixelMatrixTool', '${{ github.workspace }}' | Set-Content cli_build.spec
+        
+    - name: Build GUI application
+      run: |
+        pyinstaller gui_build.spec
+        
+    - name: Build CLI application
+      run: |
+        pyinstaller cli_build.spec
+        
+    - name: Create release artifact directory
+      run: |
+        mkdir artifacts
+        copy dist\NeopixelMatrixTool_v1.0\* artifacts\
+        
+    - name: Upload GUI artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: NeopixelMatrixTool-GUI-Windows
+        path: dist/NeopixelMatrixTool_v1.0/
+        
+    - name: Upload CLI artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: NeopixelMatrixTool-CLI-Windows
+        path: dist/cli_app/
+
+  build-linux:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Fix spec file paths
+      run: |
+        # Replace hardcoded paths in spec files with relative paths
+        sed -i "s|G:\\\\NeopixelMatrixTool|$(pwd)|g" NeopixelMatrixTool_v1.0.spec
+        sed -i "s|G:\\\\NeopixelMatrixTool|$(pwd)|g" gui_build.spec
+        sed -i "s|G:\\\\miniconda\\\\install\\\\envs\\\\PyQtDev|$(pwd)|g" gui_build.spec
+        sed -i "s|G:\\\\NeopixelMatrixTool|$(pwd)|g" cli_build.spec
+        
+    - name: Build GUI application
+      run: |
+        pyinstaller gui_build.spec
+        
+    - name: Build CLI application
+      run: |
+        pyinstaller cli_build.spec
+        
+    - name: Upload GUI artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: NeopixelMatrixTool-GUI-Linux
+        path: dist/NeopixelMatrixTool_v1.0/
+        
+    - name: Upload CLI artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: NeopixelMatrixTool-CLI-Linux
+        path: dist/cli_app/
+        
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Fix spec file paths
+      run: |
+        # Replace hardcoded paths in spec files with relative paths
+        sed -i '' "s|G:\\\\NeopixelMatrixTool|$(pwd)|g" NeopixelMatrixTool_v1.0.spec
+        sed -i '' "s|G:\\\\NeopixelMatrixTool|$(pwd)|g" gui_build.spec
+        sed -i '' "s|G:\\\\miniconda\\\\install\\\\envs\\\\PyQtDev|$(pwd)|g" gui_build.spec
+        sed -i '' "s|G:\\\\NeopixelMatrixTool|$(pwd)|g" cli_build.spec
+        
+    - name: Build GUI application
+      run: |
+        pyinstaller gui_build.spec
+        
+    - name: Build CLI application
+      run: |
+        pyinstaller cli_build.spec
+        
+    - name: Upload GUI artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: NeopixelMatrixTool-GUI-macOS
+        path: dist/NeopixelMatrixTool_v1.0/
+        
+    - name: Upload CLI artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: NeopixelMatrixTool-CLI-macOS
+        path: dist/cli_app/
